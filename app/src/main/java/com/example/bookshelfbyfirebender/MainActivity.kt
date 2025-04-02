@@ -10,7 +10,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.bookshelfbyfirebender.ui.theme.BookshelfByFirebenderTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,10 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             BookshelfByFirebenderTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    BookshelfApp(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -31,17 +27,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun BookshelfApp(modifier: Modifier = Modifier) {
+    BookshelfHomeScreen(modifier = modifier)
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    BookshelfByFirebenderTheme {
-        Greeting("Android")
-    }
+fun BookshelfHomeScreen(modifier: Modifier = Modifier) {
+    Text(
+        text = "Book Search",
+        modifier = modifier
+    )
 }
