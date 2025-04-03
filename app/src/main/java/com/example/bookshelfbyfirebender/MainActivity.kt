@@ -7,9 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.bookshelfbyfirebender.ui.screens.BookshelfHomeScreen
 import com.example.bookshelfbyfirebender.ui.theme.BookshelfByFirebenderTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,12 +29,4 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BookshelfApp(modifier: Modifier = Modifier) {
     BookshelfHomeScreen(modifier = modifier)
-}
-
-@Composable
-fun BookshelfHomeScreen(modifier: Modifier = Modifier) {
-    Text(
-        text = "Book Search",
-        modifier = modifier
-    )
 }

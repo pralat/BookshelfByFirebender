@@ -13,6 +13,7 @@ retrofit-serialization = "1.0.0"
 okhttp = "4.11.0"
 kotlinx-serialization = "1.5.1"
 coil = "2.4.0"
+lifecycle = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +35,7 @@ retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "re
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
