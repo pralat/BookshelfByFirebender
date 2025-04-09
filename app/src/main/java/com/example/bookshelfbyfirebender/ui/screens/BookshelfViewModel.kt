@@ -5,12 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.network.BookApi
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 sealed interface BookshelfUiState {
-    data class Success(val books: String) : BookshelfUiState
+    data class Success(val books: List<Book>) : BookshelfUiState
     object Error : BookshelfUiState
     object Loading : BookshelfUiState
 }
@@ -28,9 +29,7 @@ class BookshelfViewModel : ViewModel() {
             bookshelfUiState = BookshelfUiState.Loading
             bookshelfUiState = try {
                 val result = BookApi.retrofitService.getBooks(query)
-                BookshelfUiState.Success(
-                    "Success: ${result.totalItems} books found"
-                )
+                BookshelfUiState.Success(result.items)
             } catch (e: IOException) {
                 BookshelfUiState.Error
             } catch (e: Exception) {
