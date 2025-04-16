@@ -19,12 +19,23 @@ sealed interface BookshelfUiState {
 class BookshelfViewModel : ViewModel() {
     var bookshelfUiState: BookshelfUiState by mutableStateOf(BookshelfUiState.Loading)
         private set
+    
+    var searchQuery by mutableStateOf("")
+        private set
 
     init {
         getBooks()
     }
 
-    fun getBooks(query: String = "fiction") {
+    fun updateSearchQuery(query: String) {
+        searchQuery = query
+    }
+
+    fun searchBooks() {
+        getBooks(searchQuery)
+    }
+
+    private fun getBooks(query: String = "android") {
         viewModelScope.launch {
             bookshelfUiState = BookshelfUiState.Loading
             bookshelfUiState = try {

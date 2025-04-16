@@ -13,7 +13,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,26 +32,43 @@ import com.example.bookshelfbyfirebender.R
 import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.text.input.ImeAction
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun BookshelfHomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: BookshelfViewModel = BookshelfViewModel()
+    viewModel: BookshelfViewModel = viewModel()
 ) {
-    when (viewModel.bookshelfUiState) {
-        is BookshelfUiState.Loading -> LoadingScreen(modifier)
-        is BookshelfUiState.Success -> SuccessScreen(
-            books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
-            modifier = modifier
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        SearchBar(
+            searchQuery = viewModel.searchQuery,
+            onQueryChange = { viewModel.updateSearchQuery(it) },
+            onSearch = { viewModel.searchBooks() }
         )
-        is BookshelfUiState.Error -> ErrorScreen(modifier)
+        when (viewModel.bookshelfUiState) {
+            is BookshelfUiState.Loading -> LoadingScreen()
+            is BookshelfUiState.Success -> SuccessScreen(
+                books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
+                modifier = modifier
+            )
+            is BookshelfUiState.Error -> ErrorScreen(modifier)
+        }
     }
 }
 
 @Composable
-fun LoadingScreen(modifier: Modifier = Modifier) {
+fun LoadingScreen() {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
@@ -153,4 +172,34 @@ fun BookCard(
             }
         }
     }
+}
+
+@Composable
+fun SearchBar(
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onQueryChange,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = stringResource(R.string.search)
+            )
+        },
+        label = { Text(stringResource(R.string.search)) },
+        singleLine = true,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearch() }
+        )
+    )
 }
