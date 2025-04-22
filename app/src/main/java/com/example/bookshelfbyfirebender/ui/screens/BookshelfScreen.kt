@@ -1,5 +1,6 @@
 package com.example.bookshelfbyfirebender.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 //import androidx.compose.foundation.layout.ContentScale
@@ -44,7 +45,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun BookshelfHomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: BookshelfViewModel = viewModel()
+    viewModel: BookshelfViewModel = viewModel(),
+    onBookClick: (Book) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxSize()
@@ -58,6 +60,7 @@ fun BookshelfHomeScreen(
             is BookshelfUiState.Loading -> LoadingScreen()
             is BookshelfUiState.Success -> SuccessScreen(
                 books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
+                onBookClick = onBookClick,
                 modifier = modifier
             )
             is BookshelfUiState.Error -> ErrorScreen(modifier)
@@ -88,6 +91,7 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 @Composable
 fun SuccessScreen(
     books: List<Book>,
+    onBookClick: (Book) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -96,7 +100,10 @@ fun SuccessScreen(
         contentPadding = PaddingValues(4.dp)
     ) {
         items(items = books) { book ->
-            BookCard(book = book)
+            BookCard(
+                book = book,
+                onBookClick = onBookClick
+            )
         }
     }
 }
@@ -104,6 +111,7 @@ fun SuccessScreen(
 @Composable
 fun BookCard(
     book: Book,
+    onBookClick: (Book) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -111,6 +119,7 @@ fun BookCard(
             .padding(4.dp)
             .fillMaxWidth()
             .height(296.dp)
+            .clickable { onBookClick(book) }
     ) {
         Column {
             AsyncImage(

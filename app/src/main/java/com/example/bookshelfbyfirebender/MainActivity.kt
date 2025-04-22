@@ -5,11 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.bookshelfbyfirebender.ui.screens.BookshelfHomeScreen
+import com.example.bookshelfbyfirebender.ui.BookshelfNavGraph
 import com.example.bookshelfbyfirebender.ui.theme.BookshelfByFirebenderTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,15 +16,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BookshelfByFirebenderTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    BookshelfApp(modifier = Modifier.padding(innerPadding))
+                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
+                    BookshelfNavGraph( )
                 }
             }
         }
     }
-}
-
-@Composable
-fun BookshelfApp(modifier: Modifier = Modifier) {
-    BookshelfHomeScreen(modifier = modifier)
 }
