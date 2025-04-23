@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -118,21 +120,28 @@ fun BookCard(
         modifier = modifier
             .padding(4.dp)
             .fillMaxWidth()
-            .height(296.dp)
+            .height(320.dp)
             .clickable { onBookClick(book) }
     ) {
         Column {
-            AsyncImage(
-                model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:"))
-                    .crossfade(true)
-                    .build(),
-                contentDescription = book.volumeInfo.title,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
-                contentScale = ContentScale.Crop
-            )
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:"))
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = book.volumeInfo.title,
+                    modifier = Modifier
+                        .fillMaxHeight(0.9f)
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Fit
+                )
+            }
             Column(
                 modifier = Modifier.padding(8.dp)
             ) {
