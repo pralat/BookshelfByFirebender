@@ -1,5 +1,6 @@
 package com.example.bookshelfbyfirebender.ui
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -8,6 +9,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.ui.screens.BookDetailsScreen
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfHomeScreen
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -34,7 +37,12 @@ fun BookshelfNavGraph(
         composable(Screen.Details.route) {
             val book = navController.previousBackStackEntry?.savedStateHandle?.get<Book>("book")
             book?.let {
-                BookDetailsScreen(book = it)
+                Scaffold { innerPadding ->
+                    BookDetailsScreen(
+                        book = book,
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
         }
     }
