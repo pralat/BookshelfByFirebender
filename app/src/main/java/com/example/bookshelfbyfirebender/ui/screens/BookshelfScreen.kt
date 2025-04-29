@@ -1,9 +1,9 @@
 package com.example.bookshelfbyfirebender.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.ContentScale
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
@@ -33,14 +35,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelfbyfirebender.R
 import com.example.bookshelfbyfirebender.network.Book
-import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
-import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
-import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.input.key.Key
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -50,13 +49,18 @@ fun BookshelfHomeScreen(
     viewModel: BookshelfViewModel = viewModel(),
     onBookClick: (Book) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Column(
         modifier = modifier.fillMaxSize()
     ) {
         SearchBar(
             searchQuery = viewModel.searchQuery,
             onQueryChange = { viewModel.updateSearchQuery(it) },
-            onSearch = { viewModel.searchBooks() }
+            onImeSearch = {
+                viewModel.searchBooks()
+                keyboardController?.hide()
+            }
         )
         when (viewModel.bookshelfUiState) {
             is BookshelfUiState.Loading -> LoadingScreen()
@@ -196,7 +200,7 @@ fun BookCard(
 fun SearchBar(
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onImeSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
@@ -217,7 +221,24 @@ fun SearchBar(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onSearch = { onSearch() }
-        )
+            onSearch = { onImeSearch() }
+        ),
+        trailingIcon = {
+            AnimatedVisibility(
+                visible = searchQuery.isNotBlank()
+            ) {
+                IconButton(
+                    onClick = {
+                        onQueryChange("")
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.close_hint),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
     )
 }
