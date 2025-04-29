@@ -14,10 +14,11 @@ sealed interface BookshelfUiState {
     data class Success(val books: List<Book>) : BookshelfUiState
     object Error : BookshelfUiState
     object Loading : BookshelfUiState
+    object EmptySearch : BookshelfUiState
 }
 
 class BookshelfViewModel : ViewModel() {
-    var bookshelfUiState: BookshelfUiState by mutableStateOf(BookshelfUiState.Loading)
+    var bookshelfUiState: BookshelfUiState by mutableStateOf(BookshelfUiState.EmptySearch)
         private set
     
     var searchQuery by mutableStateOf("")
@@ -35,7 +36,12 @@ class BookshelfViewModel : ViewModel() {
         getBooks(searchQuery)
     }
 
-    private fun getBooks(query: String = "android") {
+    private fun getBooks(query: String = "") {
+        if (query.isBlank()) {
+            bookshelfUiState = BookshelfUiState.EmptySearch
+            return
+        }
+
         viewModelScope.launch {
             bookshelfUiState = BookshelfUiState.Loading
             bookshelfUiState = try {

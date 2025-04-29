@@ -3,4 +3,5 @@
     <string name="loading_failed">Failed to load</string>
     <string name="search">Search</string>
     <string name="close_hint">Close</string>
+    <string name="enter_search_term">Enter a search term to find books</string>
 </resources>

@@ -70,6 +70,7 @@ fun BookshelfHomeScreen(
                 modifier = modifier
             )
             is BookshelfUiState.Error -> ErrorScreen(modifier)
+            is BookshelfUiState.EmptySearch -> EmptySearchScreen(modifier)
         }
     }
 }
@@ -241,4 +242,17 @@ fun SearchBar(
             }
         }
     )
+}
+
+@Composable
+fun EmptySearchScreen(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.enter_search_term),
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
 }
