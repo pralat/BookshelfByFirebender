@@ -137,7 +137,11 @@ fun BookCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:"))
+                        .data(book.volumeInfo.imageLinks?.let {
+                            // Use thumbnail for grid view to save data
+                            it.thumbnail?.replace("http:", "https:")
+                                ?: it.smallThumbnail?.replace("http:", "https:")
+                        })
                         .crossfade(true)
                         .build(),
                     contentDescription = book.volumeInfo.title,

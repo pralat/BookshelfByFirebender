@@ -16,20 +16,43 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelfbyfirebender.network.Book
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 
 @Composable
 fun BookDetailsScreen(
     book: Book,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    // Check if user is on WiFi
+    val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+    val network = connectivityManager?.activeNetwork
+    val capabilities = connectivityManager?.getNetworkCapabilities(network)
+    val isWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+
     Column(
         modifier = modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http:", "https:"))
+            model = ImageRequest.Builder(context = context)
+                .data(book.volumeInfo.imageLinks?.let {
+                    if (isWifi) {
+                        // On WiFi, use higher resolution images
+                        it.large?.replace("http:", "https:")
+                            ?: it.medium?.replace("http:", "https:")
+                            ?: it.small?.replace("http:", "https:")
+                            ?: it.thumbnail?.replace("http:", "https:")
+                    } else {
+                        // On mobile data, use medium resolution to save data
+                        it.medium?.replace("http:", "https:")
+                            ?: it.small?.replace("http:", "https:")
+                            ?: it.thumbnail?.replace("http:", "https:")
+                    }
+                })
                 .crossfade(true)
                 .build(),
             contentDescription = book.volumeInfo.title,
