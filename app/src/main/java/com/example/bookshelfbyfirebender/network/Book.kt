@@ -18,6 +18,7 @@ data class BookShelf(
 data class Book(
     val id: String,
     val volumeInfo: VolumeInfo,
+    val selfLink: String = "" // Default value for compatibility
 ) : Parcelable
 
 @Parcelize

@@ -8,9 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.ui.screens.BookDetailsScreen
+import com.example.bookshelfbyfirebender.ui.screens.BookDetailsViewModel
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfHomeScreen
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
