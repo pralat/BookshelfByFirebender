@@ -29,6 +29,9 @@ import coil.request.ImageRequest
 import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.ui.screens.BookDetailsViewModel
 import com.example.bookshelfbyfirebender.ui.screens.BookDetailsState
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 
 //sealed interface BookDetailsState {
 //    data class Success(val book: Book) : BookDetailsState
@@ -95,21 +98,34 @@ fun DetailContent(
     book: Book,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val isOnWiFi = remember {
+        isConnectedToWiFi(context)
+    }
+
     Column(
         modifier = modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Choose the best available image, from highest to lowest resolution
+
+        // Choose image based on WiFi connectivity
         val imageUrl = with(book.volumeInfo.imageLinks) {
-            this?.extraLarge?.replace("http:", "https:")
-                ?: this?.large?.replace("http:", "https:")
-                ?: this?.medium?.replace("http:", "https:")
-                ?: this?.small?.replace("http:", "https:")
-                ?: this?.thumbnail?.replace("http:", "https:") 
-                ?: ""
+            if (isOnWiFi) {
+                // Use highest quality when on WiFi
+                this?.extraLarge?.replace("http:", "https:")
+                    ?: this?.large?.replace("http:", "https:")
+                    ?: this?.medium?.replace("http:", "https:")
+                    ?: this?.small?.replace("http:", "https:")
+                    ?: this?.thumbnail?.replace("http:", "https:")
+                    ?: ""
+            } else {
+                // Use lower quality to save data when on mobile
+                this?.thumbnail?.replace("http:", "https:")
+                    ?: this?.small?.replace("http:", "https:")
+                    ?: ""
+            }
         }
         
         AsyncImage(
@@ -146,4 +162,12 @@ fun DetailContent(
             )
         }
     }
+}
+
+private fun isConnectedToWiFi(context: Context): Boolean {
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return false
+    val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+    return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
 }
