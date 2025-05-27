@@ -113,17 +113,17 @@ fun DetailContent(
         // Choose image based on WiFi connectivity
         val imageUrl = with(book.volumeInfo.imageLinks) {
             if (isOnWiFi) {
-                // Use highest quality when on WiFi
-                this?.extraLarge?.replace("http:", "https:")
-                    ?: this?.large?.replace("http:", "https:")
+                // Use higher quality when on WiFi
+                this?.large?.replace("http:", "https:")
                     ?: this?.medium?.replace("http:", "https:")
                     ?: this?.small?.replace("http:", "https:")
                     ?: this?.thumbnail?.replace("http:", "https:")
                     ?: ""
             } else {
                 // Use lower quality to save data when on mobile
-                this?.thumbnail?.replace("http:", "https:")
+                this?.medium?.replace("http:", "https:")
                     ?: this?.small?.replace("http:", "https:")
+                    ?: this?.thumbnail?.replace("http:", "https:")
                     ?: ""
             }
         }
