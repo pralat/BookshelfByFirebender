@@ -42,6 +42,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun BookshelfHomeScreen(
@@ -50,6 +51,17 @@ fun BookshelfHomeScreen(
     onBookClick: (Book) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Handle back button press
+    BackHandler(
+        enabled = viewModel.bookshelfUiState is BookshelfUiState.Success ||
+                viewModel.bookshelfUiState is BookshelfUiState.Error ||
+                viewModel.bookshelfUiState is BookshelfUiState.Loading
+    ) {
+        // Clear search and return to empty search state
+        viewModel.updateSearchQuery("")
+        keyboardController?.hide()
+    }
 
     Column(
         modifier = modifier.fillMaxSize()
