@@ -20,13 +20,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,12 +43,13 @@ import com.example.bookshelfbyfirebender.R
 import com.example.bookshelfbyfirebender.network.Book
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.text.input.ImeAction
+import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
+import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.activity.compose.BackHandler
 
 @Composable
 fun BookshelfHomeScreen(
@@ -51,17 +58,6 @@ fun BookshelfHomeScreen(
     onBookClick: (Book) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Handle back button press
-    BackHandler(
-        enabled = viewModel.bookshelfUiState is BookshelfUiState.Success ||
-                viewModel.bookshelfUiState is BookshelfUiState.Error ||
-                viewModel.bookshelfUiState is BookshelfUiState.Loading
-    ) {
-        // Clear search and return to empty search state
-        viewModel.updateSearchQuery("")
-        keyboardController?.hide()
-    }
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -78,11 +74,11 @@ fun BookshelfHomeScreen(
             is BookshelfUiState.Loading -> LoadingScreen()
             is BookshelfUiState.Success -> SuccessScreen(
                 books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
-                onBookClick = onBookClick,
-                modifier = modifier
+                onBookClick = onBookClick
             )
-            is BookshelfUiState.Error -> ErrorScreen(modifier)
-            is BookshelfUiState.EmptySearch -> EmptySearchScreen(modifier)
+
+            is BookshelfUiState.Error -> ErrorScreen()
+            is BookshelfUiState.EmptySearch -> EmptySearchScreen()
         }
     }
 }

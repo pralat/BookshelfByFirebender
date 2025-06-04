@@ -37,13 +37,10 @@ fun BookshelfNavGraph(
         composable(Screen.Details.route) {
             val book = navController.previousBackStackEntry?.savedStateHandle?.get<Book>("book")
             book?.let {
-                Scaffold { innerPadding ->
-                    BookDetailsScreen(
-                        book = book,
-                        modifier = Modifier.padding(innerPadding),
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
+                BookDetailsScreen(
+                    book = book,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
