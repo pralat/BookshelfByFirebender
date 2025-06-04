@@ -30,6 +30,10 @@ class BookshelfViewModel : ViewModel() {
 
     fun updateSearchQuery(query: String) {
         searchQuery = query
+        // If the query is cleared, reset to empty search state
+        if (query.isBlank()) {
+            bookshelfUiState = BookshelfUiState.EmptySearch
+        }
     }
 
     fun searchBooks() {
