@@ -85,7 +85,7 @@ fun BookDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Book Details") },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = {
                         println("TopAppBar back button clicked")
