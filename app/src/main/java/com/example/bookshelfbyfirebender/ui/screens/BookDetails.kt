@@ -39,9 +39,6 @@ import com.example.bookshelfbyfirebender.ui.screens.BookDetailsState
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 
 //sealed interface BookDetailsState {
 //    data class Success(val book: Book) : BookDetailsState
@@ -86,19 +83,22 @@ fun BookDetailsScreen(
     }
     
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text("Book Details") },
-//                navigationIcon = {
-//                    IconButton(onClick = onBackClick) {
-//                        Icon(
-//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                }
-//            )
-//        }
+        topBar = {
+            TopAppBar(
+                title = { Text("Book Details") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        println("TopAppBar back button clicked")
+                        onBackClick()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
         when (val state = viewModel.bookDetailsState) {
             is BookDetailsState.Loading -> {
@@ -123,7 +123,7 @@ fun BookDetailsScreen(
                 // Fallback to using the original book data
                 DetailContent(
                     book = book,
-                    onBackClick = {}, //onBackClick,
+                    onBackClick = onBackClick,
                     modifier = modifier.padding(innerPadding)
                 )
             }
@@ -142,41 +142,12 @@ fun DetailContent(
         isConnectedToWiFi(context)
     }
 
-    IconButton(
-        onClick = onBackClick,
-        modifier = Modifier
-            //.align(Alignment.Start)
-            .padding(top = 16.dp, start = 16.dp)
-            .statusBarsPadding()
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Back",
-            tint = Color.Black
-        )
-    }
-
     Column(
         modifier = modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        // start
-//        IconButton(
-//            onClick = onBackClick,
-//            modifier = Modifier
-//                .align(Alignment.Start)
-//                .padding(top = 16.dp, start = 16.dp)
-//                .statusBarsPadding()
-//        ) {
-//            Icon(
-//                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                contentDescription = "Back",
-//                tint = Color.Black
-//            )
-//        }
-        // end
         // Choose image based on WiFi connectivity
         val imageUrl = with(book.volumeInfo.imageLinks) {
             if (isOnWiFi) {

@@ -54,22 +54,51 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun BookshelfHomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: BookshelfViewModel = viewModel(),
-    onBookClick: (Book) -> Unit
+    onSearch: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    var searchQuery by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier.fillMaxSize()
     ) {
         SearchBar(
-            searchQuery = viewModel.searchQuery,
-            onQueryChange = { viewModel.updateSearchQuery(it) },
+            searchQuery = searchQuery,
+            onQueryChange = { searchQuery = it },
             onImeSearch = {
-                viewModel.searchBooks()
-                keyboardController?.hide()
+                if (searchQuery.isNotBlank()) {
+                    onSearch(searchQuery)
+                    keyboardController?.hide()
+                }
             }
         )
+        EmptySearchScreen()
+    }
+}
+
+@Composable
+fun BookshelfSearchResultsScreen(
+    searchQuery: String,
+    onBookClick: (Book) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: BookshelfViewModel = viewModel()
+) {
+    // Initialize search when screen loads
+    LaunchedEffect(searchQuery) {
+        viewModel.updateSearchQuery(searchQuery)
+        viewModel.searchBooks()
+    }
+
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Search bar with back button
+        SearchBarWithBack(
+            searchQuery = searchQuery,
+            onBackClick = onBackClick
+        )
+
         when (viewModel.bookshelfUiState) {
             is BookshelfUiState.Loading -> LoadingScreen()
             is BookshelfUiState.Success -> SuccessScreen(
@@ -253,6 +282,32 @@ fun SearchBar(
                 }
             }
         }
+    )
+}
+
+@Composable
+fun SearchBarWithBack(
+    searchQuery: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = { }, // Read-only in results view
+        leadingIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        label = { Text("Search Results") },
+        singleLine = true,
+        readOnly = true,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     )
 }
 
