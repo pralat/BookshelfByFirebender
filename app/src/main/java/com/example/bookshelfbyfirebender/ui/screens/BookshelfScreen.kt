@@ -84,8 +84,11 @@ fun BookshelfSearchResultsScreen(
     modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = viewModel()
 ) {
+    var currentSearchQuery by remember { mutableStateOf(searchQuery) }
+
     // Initialize search when screen loads
     LaunchedEffect(searchQuery) {
+        currentSearchQuery = searchQuery
         viewModel.updateSearchQuery(searchQuery)
         viewModel.searchBooks()
     }
@@ -95,7 +98,14 @@ fun BookshelfSearchResultsScreen(
     ) {
         // Search bar with back button
         SearchBarWithBack(
-            searchQuery = searchQuery,
+            searchQuery = currentSearchQuery,
+            onQueryChange = { newQuery ->
+                currentSearchQuery = newQuery
+                viewModel.updateSearchQuery(newQuery)
+            },
+            onSearch = {
+                viewModel.searchBooks()
+            },
             onBackClick = onBackClick
         )
 
@@ -105,7 +115,6 @@ fun BookshelfSearchResultsScreen(
                 books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
                 onBookClick = onBookClick
             )
-
             is BookshelfUiState.Error -> ErrorScreen()
             is BookshelfUiState.EmptySearch -> EmptySearchScreen()
         }
@@ -288,12 +297,14 @@ fun SearchBar(
 @Composable
 fun SearchBarWithBack(
     searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
         value = searchQuery,
-        onValueChange = { }, // Read-only in results view
+        onValueChange = onQueryChange,
         leadingIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -304,10 +315,23 @@ fun SearchBarWithBack(
         },
         label = { Text("Search Results") },
         singleLine = true,
-        readOnly = true,
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearch() }
+        ),
+        trailingIcon = {
+            IconButton(onClick = onSearch) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search"
+                )
+            }
+        }
     )
 }
 
