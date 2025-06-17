@@ -1,0 +1,6 @@
+{
+  "rules": [
+    "Do not delete exiting feature implementation without my consent",
+    "Do not uncomment code without my consent"
+  ]
+}
