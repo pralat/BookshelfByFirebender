@@ -21,21 +21,24 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -45,11 +48,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
 import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun BookshelfHomeScreen(
@@ -84,6 +85,8 @@ fun BookshelfSearchResultsScreen(
     modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = viewModel()
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     var currentSearchQuery by remember { mutableStateOf(searchQuery) }
 
     // Initialize search when screen loads
@@ -105,6 +108,8 @@ fun BookshelfSearchResultsScreen(
             },
             onSearch = {
                 viewModel.searchBooks()
+                keyboardController?.hide()
+                focusManager.clearFocus()
             },
             onBackClick = onBackClick
         )
@@ -322,10 +327,14 @@ fun SearchBarWithBack(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onSearch = { onSearch() }
+            onSearch = {
+                onSearch()
+            }
         ),
         trailingIcon = {
-            IconButton(onClick = onSearch) {
+            IconButton(onClick = {
+                onSearch()
+            }) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search"
