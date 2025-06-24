@@ -11,7 +11,12 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 sealed interface BookshelfUiState {
-    data class Success(val books: List<Book>) : BookshelfUiState
+    data class Success(
+        val books: List<Book>,
+        val totalItems: Int,
+        val startIndex: Int,
+        val isLoadingMore: Boolean = false
+    ) : BookshelfUiState
     object Error : BookshelfUiState
     object Loading : BookshelfUiState
     object EmptySearch : BookshelfUiState
@@ -24,6 +29,9 @@ class BookshelfViewModel : ViewModel() {
     var searchQuery by mutableStateOf("")
         private set
 
+    private val maxResults = 20 // Books per page
+    private var currentBooks = mutableListOf<Book>()
+
     init {
         getBooks()
     }
@@ -33,28 +41,68 @@ class BookshelfViewModel : ViewModel() {
         // If the query is cleared, reset to empty search state
         if (query.isBlank()) {
             bookshelfUiState = BookshelfUiState.EmptySearch
+            currentBooks.clear()
         }
     }
 
     fun searchBooks() {
-        getBooks(searchQuery)
+        currentBooks.clear()
+        getBooks(searchQuery, startIndex = 0)
     }
 
-    private fun getBooks(query: String = "") {
+    fun loadMoreBooks() {
+        val currentState = bookshelfUiState
+        if (currentState is BookshelfUiState.Success && !currentState.isLoadingMore) {
+            val nextStartIndex = currentState.startIndex + maxResults
+            if (nextStartIndex < currentState.totalItems) {
+                bookshelfUiState = currentState.copy(isLoadingMore = true)
+                getBooks(searchQuery, startIndex = nextStartIndex, isLoadingMore = true)
+            }
+        }
+    }
+
+    private fun getBooks(query: String = "", startIndex: Int = 0, isLoadingMore: Boolean = false) {
         if (query.isBlank()) {
             bookshelfUiState = BookshelfUiState.EmptySearch
             return
         }
 
-        viewModelScope.launch {
+        if (!isLoadingMore) {
             bookshelfUiState = BookshelfUiState.Loading
+        }
+
+        viewModelScope.launch {
             bookshelfUiState = try {
-                val result = BookApi.retrofitService.getBooks(query)
-                BookshelfUiState.Success(result.items)
+                val result = BookApi.retrofitService.getBooks(query, startIndex, maxResults)
+                
+                if (isLoadingMore) {
+                    currentBooks.addAll(result.items)
+                } else {
+                    currentBooks.clear()
+                    currentBooks.addAll(result.items)
+                }
+                
+                BookshelfUiState.Success(
+                    books = currentBooks.toList(),
+                    totalItems = result.totalItems,
+                    startIndex = startIndex,
+                    isLoadingMore = false
+                )
             } catch (e: IOException) {
-                BookshelfUiState.Error
+                if (isLoadingMore) {
+                    // Keep current state but remove loading indicator
+                    val currentState = bookshelfUiState as? BookshelfUiState.Success
+                    currentState?.copy(isLoadingMore = false) ?: BookshelfUiState.Error
+                } else {
+                    BookshelfUiState.Error
+                }
             } catch (e: Exception) {
-                BookshelfUiState.Error
+                if (isLoadingMore) {
+                    val currentState = bookshelfUiState as? BookshelfUiState.Success
+                    currentState?.copy(isLoadingMore = false) ?: BookshelfUiState.Error
+                } else {
+                    BookshelfUiState.Error
+                }
             }
         }
     }

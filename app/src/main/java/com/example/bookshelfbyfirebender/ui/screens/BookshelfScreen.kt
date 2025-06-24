@@ -5,13 +5,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+//import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+//import androidx.compose.foundation.lazy.grid.item
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -20,69 +26,107 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelfbyfirebender.R
 import com.example.bookshelfbyfirebender.network.Book
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.activity.compose.BackHandler
+import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
+import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
 
 @Composable
 fun BookshelfHomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: BookshelfViewModel = viewModel(),
-    onBookClick: (Book) -> Unit
+    onSearch: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Handle back button press
-    BackHandler(
-        enabled = viewModel.bookshelfUiState is BookshelfUiState.Success ||
-                viewModel.bookshelfUiState is BookshelfUiState.Error ||
-                viewModel.bookshelfUiState is BookshelfUiState.Loading
-    ) {
-        // Clear search and return to empty search state
-        viewModel.updateSearchQuery("")
-        keyboardController?.hide()
-    }
+    var searchQuery by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier.fillMaxSize()
     ) {
         SearchBar(
-            searchQuery = viewModel.searchQuery,
-            onQueryChange = { viewModel.updateSearchQuery(it) },
+            searchQuery = searchQuery,
+            onQueryChange = { searchQuery = it },
             onImeSearch = {
-                viewModel.searchBooks()
-                keyboardController?.hide()
+                if (searchQuery.isNotBlank()) {
+                    onSearch(searchQuery)
+                    keyboardController?.hide()
+                }
             }
         )
+        EmptySearchScreen()
+    }
+}
+
+@Composable
+fun BookshelfSearchResultsScreen(
+    searchQuery: String,
+    onBookClick: (Book) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: BookshelfViewModel = viewModel()
+) {
+    var currentSearchQuery by remember { mutableStateOf(searchQuery) }
+    
+    // Initialize search when screen loads
+    LaunchedEffect(searchQuery) {
+        currentSearchQuery = searchQuery
+        viewModel.updateSearchQuery(searchQuery)  
+        viewModel.searchBooks()
+    }
+
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Search bar with back button
+        SearchBarWithBack(
+            searchQuery = currentSearchQuery,
+            onQueryChange = { newQuery -> 
+                currentSearchQuery = newQuery
+                viewModel.updateSearchQuery(newQuery)
+            },
+            onSearch = {
+                viewModel.searchBooks()
+            },
+            onBackClick = onBackClick
+        )
+
         when (viewModel.bookshelfUiState) {
             is BookshelfUiState.Loading -> LoadingScreen()
-            is BookshelfUiState.Success -> SuccessScreen(
-                books = (viewModel.bookshelfUiState as BookshelfUiState.Success).books,
-                onBookClick = onBookClick,
-                modifier = modifier
-            )
-            is BookshelfUiState.Error -> ErrorScreen(modifier)
-            is BookshelfUiState.EmptySearch -> EmptySearchScreen(modifier)
+            is BookshelfUiState.Success -> {
+                val successState = viewModel.bookshelfUiState as BookshelfUiState.Success
+                SuccessScreen(
+                    books = successState.books,
+                    totalItems = successState.totalItems,
+                    currentDisplayed = successState.books.size,
+                    isLoadingMore = successState.isLoadingMore,
+                    onBookClick = onBookClick,
+                    onLoadMore = { viewModel.loadMoreBooks() }
+                )
+            }
+            is BookshelfUiState.Error -> ErrorScreen()
+            is BookshelfUiState.EmptySearch -> EmptySearchScreen()
         }
     }
 }
@@ -110,19 +154,57 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 @Composable
 fun SuccessScreen(
     books: List<Book>,
+    totalItems: Int,
+    currentDisplayed: Int,
+    isLoadingMore: Boolean,
     onBookClick: (Book) -> Unit,
-    modifier: Modifier = Modifier
+    onLoadMore: () -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(4.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        items(items = books) { book ->
-            BookCard(
-                book = book,
-                onBookClick = onBookClick
-            )
+        // Pagination info
+        Text(
+            text = "Showing $currentDisplayed of $totalItems books",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(4.dp)
+        ) {
+            items(items = books) { book ->
+                BookCard(
+                    book = book,
+                    onBookClick = onBookClick
+                )
+            }
+            
+            // Load more item at the end
+            if (currentDisplayed < totalItems) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .clickable { onLoadMore() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isLoadingMore) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                text = "Load More Books",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -257,6 +339,42 @@ fun SearchBar(
                 }
             }
         }
+    )
+}
+
+@Composable
+fun SearchBarWithBack(
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onQueryChange,
+        leadingIcon = {
+            IconButton(
+                onClick = onBackClick
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        label = { Text(stringResource(R.string.search)) },
+        singleLine = true,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearch() }
+        )
     )
 }
 
