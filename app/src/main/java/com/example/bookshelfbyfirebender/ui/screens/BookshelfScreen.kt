@@ -13,11 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-//import androidx.compose.foundation.lazy.grid.item
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -29,8 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -50,9 +51,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.bookshelfbyfirebender.ui.screens.BookshelfViewModel
-import com.example.bookshelfbyfirebender.ui.screens.BookshelfUiState
 
 @Composable
 fun BookshelfHomeScreen(
@@ -116,13 +117,26 @@ fun BookshelfSearchResultsScreen(
             is BookshelfUiState.Loading -> LoadingScreen()
             is BookshelfUiState.Success -> {
                 val successState = viewModel.bookshelfUiState as BookshelfUiState.Success
+                val state = rememberLazyGridState()
+                val loadMore = rememberUpdatedState(successState.isLoadingMore)
+                
+                // Trigger load more when near the bottom
+                LaunchedEffect(state) {
+                    snapshotFlow { state.firstVisibleItemIndex }.collect { index ->
+                        if (index > 0 && index == successState.books.size - 10 && !loadMore.value) {
+                            viewModel.loadMoreBooks()
+                        }
+                    }
+                }
+
                 SuccessScreen(
                     books = successState.books,
                     totalItems = successState.totalItems,
                     currentDisplayed = successState.books.size,
                     isLoadingMore = successState.isLoadingMore,
                     onBookClick = onBookClick,
-                    onLoadMore = { viewModel.loadMoreBooks() }
+                    modifier = modifier,
+                    state = state
                 )
             }
             is BookshelfUiState.Error -> ErrorScreen()
@@ -158,10 +172,11 @@ fun SuccessScreen(
     currentDisplayed: Int,
     isLoadingMore: Boolean,
     onBookClick: (Book) -> Unit,
-    onLoadMore: () -> Unit
+    modifier: Modifier = Modifier,
+    state: LazyGridState
 ) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         // Pagination info
         Text(
@@ -174,6 +189,7 @@ fun SuccessScreen(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(150.dp),
             modifier = Modifier.weight(1f),
+            state = state,
             contentPadding = PaddingValues(4.dp)
         ) {
             items(items = books) { book ->
@@ -183,24 +199,17 @@ fun SuccessScreen(
                 )
             }
             
-            // Load more item at the end
+            // Show loading indicator at the bottom if more items to load
             if (currentDisplayed < totalItems) {
                 item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
-                            .clickable { onLoadMore() },
+                            .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isLoadingMore) {
                             CircularProgressIndicator()
-                        } else {
-                            Text(
-                                text = "Load More Books",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
                         }
                     }
                 }
