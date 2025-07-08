@@ -122,8 +122,16 @@ fun BookshelfSearchResultsScreen(
                 
                 // Trigger load more when near the bottom
                 LaunchedEffect(state) {
-                    snapshotFlow { state.firstVisibleItemIndex }.collect { index ->
-                        if (index > 0 && index == successState.books.size - 10 && !loadMore.value) {
+                    snapshotFlow {
+                        state.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                    }.collect { lastVisibleIndex ->
+                        val totalItems = successState.books.size
+                        val shouldLoadMore = lastVisibleIndex != null &&
+                                lastVisibleIndex >= totalItems - 5 &&
+                                !successState.isLoadingMore &&
+                                totalItems < successState.totalItems
+
+                        if (shouldLoadMore) {
                             viewModel.loadMoreBooks()
                         }
                     }

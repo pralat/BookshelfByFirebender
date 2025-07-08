@@ -1,5 +1,6 @@
 package com.example.bookshelfbyfirebender.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -52,7 +53,10 @@ class BookshelfViewModel : ViewModel() {
 
     fun loadMoreBooks() {
         val currentState = bookshelfUiState
+        Log.d("currentState", (currentState is BookshelfUiState.Success).toString())
+        Log.d("currentState", (currentState is BookshelfUiState.Success && !currentState.isLoadingMore).toString())
         if (currentState is BookshelfUiState.Success && !currentState.isLoadingMore) {
+            Log.d("loadMoreBooks", "Loading more books")
             val nextStartIndex = currentState.startIndex + maxResults
             if (nextStartIndex < currentState.totalItems) {
                 bookshelfUiState = currentState.copy(isLoadingMore = true)
@@ -76,7 +80,10 @@ class BookshelfViewModel : ViewModel() {
                 val result = BookApi.retrofitService.getBooks(query, startIndex, maxResults)
                 
                 if (isLoadingMore) {
-                    currentBooks.addAll(result.items)
+                    // If no more items returned, don't add anything but stop loading
+                    if (result.items.isNotEmpty()) {
+                        currentBooks.addAll(result.items)
+                    }
                 } else {
                     currentBooks.clear()
                     currentBooks.addAll(result.items)
@@ -85,10 +92,11 @@ class BookshelfViewModel : ViewModel() {
                 BookshelfUiState.Success(
                     books = currentBooks.toList(),
                     totalItems = result.totalItems,
-                    startIndex = startIndex,
+                    startIndex = if (isLoadingMore) currentBooks.size else startIndex,
                     isLoadingMore = false
                 )
             } catch (e: IOException) {
+                Log.e("BookshelfViewModel", "Network error: ${e.message}")
                 if (isLoadingMore) {
                     // Keep current state but remove loading indicator
                     val currentState = bookshelfUiState as? BookshelfUiState.Success
@@ -97,6 +105,7 @@ class BookshelfViewModel : ViewModel() {
                     BookshelfUiState.Error
                 }
             } catch (e: Exception) {
+                Log.e("BookshelfViewModel", "Error loading books: ${e.message}")
                 if (isLoadingMore) {
                     val currentState = bookshelfUiState as? BookshelfUiState.Success
                     currentState?.copy(isLoadingMore = false) ?: BookshelfUiState.Error

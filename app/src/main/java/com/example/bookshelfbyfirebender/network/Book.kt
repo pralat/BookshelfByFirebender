@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class BookShelf(
-    val items: List<Book>,
+    val items: List<Book> = emptyList(),
     val kind: String,
     val totalItems: Int
 ) : Parcelable
