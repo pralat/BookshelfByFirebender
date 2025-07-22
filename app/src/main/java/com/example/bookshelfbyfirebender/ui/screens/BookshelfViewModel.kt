@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookshelfbyfirebender.network.Book
 import com.example.bookshelfbyfirebender.network.BookApi
+import com.example.bookshelfbyfirebender.network.BookApiService
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -23,7 +24,7 @@ sealed interface BookshelfUiState {
     object EmptySearch : BookshelfUiState
 }
 
-class BookshelfViewModel : ViewModel() {
+class BookshelfViewModel(private val api: BookApiService = BookApi.retrofitService) : ViewModel() {
     var bookshelfUiState: BookshelfUiState by mutableStateOf(BookshelfUiState.EmptySearch)
         private set
     
@@ -77,8 +78,8 @@ class BookshelfViewModel : ViewModel() {
 
         viewModelScope.launch {
             bookshelfUiState = try {
-                val result = BookApi.retrofitService.getBooks(query, startIndex, maxResults)
-                
+                val result = api.getBooks(query, startIndex, maxResults)
+
                 if (isLoadingMore) {
                     // If no more items returned, don't add anything but stop loading
                     if (result.items.isNotEmpty()) {
@@ -88,7 +89,7 @@ class BookshelfViewModel : ViewModel() {
                     currentBooks.clear()
                     currentBooks.addAll(result.items)
                 }
-                
+
                 BookshelfUiState.Success(
                     books = currentBooks.toList(),
                     totalItems = result.totalItems,

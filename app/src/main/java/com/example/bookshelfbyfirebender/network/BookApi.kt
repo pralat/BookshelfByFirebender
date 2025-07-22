@@ -29,7 +29,6 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 object BookApi {
-    val retrofitService: BookApiService by lazy {
-        retrofit.create(BookApiService::class.java)
-    }
+    // Made 'var' for testability: allows injecting a fake API service in tests
+    var retrofitService: BookApiService = retrofit.create(BookApiService::class.java)
 }

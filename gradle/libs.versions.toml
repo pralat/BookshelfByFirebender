@@ -1,5 +1,6 @@
 [versions]
 agp = "8.8.1"
+coreTesting = "2.2.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -12,14 +13,17 @@ retrofit = "2.9.0"
 retrofit-serialization = "1.0.0"
 okhttp = "4.11.0"
 kotlinx-serialization = "1.5.1"
+kotlinx-coroutines = "1.6.4"
 coil = "2.4.0"
 lifecycle = "2.7.0"
 navigation-compose = "2.8.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name  = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
